@@ -1,0 +1,47 @@
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS warehouses;
+
+CREATE TABLE categories (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE warehouses (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    city VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE items (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    category_id INT UNSIGNED NOT NULL,
+    warehouse_id INT UNSIGNED NOT NULL,
+    stock INT UNSIGNED NOT NULL DEFAULT 0,
+    min_stock INT UNSIGNED NOT NULL DEFAULT 0,
+    unit VARCHAR(20) NOT NULL DEFAULT 'pcs',
+    status ENUM('Available', 'Low Stock', 'Maintenance') NOT NULL DEFAULT 'Available',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_items_category FOREIGN KEY (category_id) REFERENCES categories (id),
+    CONSTRAINT fk_items_warehouse FOREIGN KEY (warehouse_id) REFERENCES warehouses (id)
+);
+
+CREATE TABLE transactions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    item_id INT UNSIGNED NOT NULL,
+    type ENUM('in', 'out') NOT NULL,
+    quantity INT UNSIGNED NOT NULL,
+    stock_before INT UNSIGNED NOT NULL,
+    stock_after INT UNSIGNED NOT NULL,
+    note VARCHAR(255) NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_transactions_item FOREIGN KEY (item_id) REFERENCES items (id) ON DELETE CASCADE,
+    INDEX idx_transactions_created_at (created_at)
+);
